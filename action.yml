@@ -1,0 +1,24 @@
+name: 'AWSTerraform Deployment'
+description: 'Deploy terraform scripts into aws cloud.'
+inputs:
+  environmentName:
+    description: 'The name of the current environmnet'
+    required: true
+  backendBucket:
+    description: 'The s3 bucket name used by the backend to save terraform state.'
+    required: true
+  regionName:
+    description: 'The aws region name.'
+    required: true        
+  profileName:
+    description: 'The aws profile name used to login.'
+    required: true   
+  backendDynamoDB:
+    description: 'The dynamodb table name used by terraform for locking.'
+    required: true   
+  scriptPath:
+    description: 'The folder path where all the terraform scripts exist.'
+    required: true                    
+runs:
+  using: 'node20'
+  main: 'index.js'
