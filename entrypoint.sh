@@ -24,9 +24,11 @@ infraterraformDir="$6"
 cd "$infraterraformDir" || exit
 
 # Initialize terraform with the provided backend configuration
-terraform init -backend-config="bucket=$backendBucket" -backend-config="region=$regionName" \
--backend-config="profile=$profileName" -backend-config="dynamodb_table=$backendDynamoDB" \
--backend=true -force-copy -get=true -input=false
+terraform init -backend-config="bucket=$backendBucket" \
+               -backend-config="region=$regionName" \
+               -backend-config="profile=$profileName" \
+               -backend-config="dynamodb_table=$backendDynamoDB" \
+               -backend=true -force-copy -get=true -input=false
 
 # Validate the terraform configuration
 terraform validate
@@ -36,3 +38,19 @@ terraform plan -out=tfplan
 
 # Apply the saved plan
 terraform apply tfplan
+
+# Export Terraform outputs to GitHub Actions outputs
+echo "Exporting Terraform outputs..."
+output_json=$(terraform output -json)
+
+if [[ "$output_json" != "{}" ]]; then
+  echo "$output_json" | jq -r 'to_entries[] | "\(.key)<<EOF\n\(.value.value)\nEOF"' | while IFS= read -r line; do
+    if [[ $line == *"<<EOF" ]]; then
+      key=$(echo "$line" | cut -d'<' -f1)
+      read -r value
+      echo "$key=$value" >> "$GITHUB_OUTPUT"
+    fi
+  done
+else
+  echo "No Terraform outputs found."
+fi
