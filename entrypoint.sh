@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Ensure that mandatory parameters are provided
 if [ $# -lt 6 ]; then
     echo "Usage: $0 <environmentName> <backendBucket> <regionName> <profileName> <backendDynamoDB> <infraterraformDir> [displayOutput]"
