@@ -2,7 +2,7 @@
 
 # Ensure that mandatory parameters are provided
 if [ $# -lt 6 ]; then
-    echo "Usage: $0 <environmentName> <backendBucket> <regionName> <profileName> <backendDynamoDB> <infraterraformDir>"
+    echo "Usage: $0 <environmentName> <backendBucket> <regionName> <profileName> <backendDynamoDB> <infraterraformDir> <displayOutput>"
     exit 1
 fi
 
@@ -19,6 +19,7 @@ regionName="$3"
 profileName="$4"
 backendDynamoDB="$5"
 infraterraformDir="$6"
+displayOutput="$7"
 
 # Navigate to the specified terraform directory
 cd "$infraterraformDir" || exit
@@ -42,6 +43,10 @@ terraform apply tfplan
 # Export Terraform outputs to GitHub Actions outputs
 echo "Exporting Terraform outputs..."
 output_json=$(terraform output -json)
+if [ "$displayOutput" = "true" ]; then
+    echo "Terraform outputs: $output_json"
+fi
+
 
 if [[ "$output_json" != "{}" ]]; then
   echo "$output_json" | jq -r 'to_entries[] | "\(.key)<<EOF\n\(.value.value)\nEOF"' | while IFS= read -r line; do

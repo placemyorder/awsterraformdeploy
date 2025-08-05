@@ -15,6 +15,8 @@ const regionName = core.getInput('regionName');
 const profileName = core.getInput('profileName');
 const backendDynamoDB = core.getInput('backendDynamoDB');
 const scriptPath = core.getInput('scriptPath');
+const displayOutput = core.getInput('displayOutput');
+
 
 
 
@@ -33,7 +35,7 @@ const exec = (cmd, args=[]) => new Promise((resolve, reject) => {
 });
 
 const main = async () => {
-    await exec('bash', [path.join(__dirname, './entrypoint.sh'),environmentName,backendBucket,regionName,profileName,backendDynamoDB,scriptPath]);
+    await exec('bash', [path.join(__dirname, './entrypoint.sh'),environmentName,backendBucket,regionName,profileName,backendDynamoDB,scriptPath,displayOutput]);
 };
 
 main().catch(err => {

@@ -18,7 +18,10 @@ inputs:
     required: true   
   scriptPath:
     description: 'The folder path where all the terraform scripts exist.'
-    required: true                    
+    required: true         
+  displayOutput:
+    description: 'Print the terraform output to the console.'
+    default: 'false'                       
 runs:
   using: 'node20'
   main: 'index.js'
