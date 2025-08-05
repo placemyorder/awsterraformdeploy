@@ -2,7 +2,7 @@
 
 # Ensure that mandatory parameters are provided
 if [ $# -lt 6 ]; then
-    echo "Usage: $0 <environmentName> <backendBucket> <regionName> <profileName> <backendDynamoDB> <infraterraformDir> <displayOutput>"
+    echo "Usage: $0 <environmentName> <backendBucket> <regionName> <profileName> <backendDynamoDB> <infraterraformDir> [displayOutput]"
     exit 1
 fi
 
@@ -19,7 +19,7 @@ regionName="$3"
 profileName="$4"
 backendDynamoDB="$5"
 infraterraformDir="$6"
-displayOutput="$7"
+displayOutput="${7:-false}"  # Default to false if not provided
 
 # Navigate to the specified terraform directory
 cd "$infraterraformDir" || exit
@@ -43,19 +43,20 @@ terraform apply tfplan
 # Export Terraform outputs to GitHub Actions outputs
 echo "Exporting Terraform outputs..."
 output_json=$(terraform output -json)
+
 if [ "$displayOutput" = "true" ]; then
     echo "Terraform outputs: $output_json"
 fi
 
+# Check if we're running in GitHub Actions
+if [ -z "$GITHUB_OUTPUT" ]; then
+    echo "Warning: GITHUB_OUTPUT environment variable not set. Outputs will not be exported to GitHub Actions."
+    exit 0
+fi
 
-if [[ "$output_json" != "{}" ]]; then
-  echo "$output_json" | jq -r 'to_entries[] | "\(.key)<<EOF\n\(.value.value)\nEOF"' | while IFS= read -r line; do
-    if [[ $line == *"<<EOF" ]]; then
-      key=$(echo "$line" | cut -d'<' -f1)
-      read -r value
-      echo "$key=$value" >> "$GITHUB_OUTPUT"
-    fi
-  done
+if [[ "$output_json" != "{}" && -n "$output_json" ]]; then
+    echo "$output_json" | jq -r 'to_entries[] | "\(.key)=\(.value.value)"' >> "$GITHUB_OUTPUT"
+    echo "Successfully exported $(echo "$output_json" | jq 'keys | length') outputs to GitHub Actions."
 else
-  echo "No Terraform outputs found."
+    echo "No Terraform outputs found."
 fi
