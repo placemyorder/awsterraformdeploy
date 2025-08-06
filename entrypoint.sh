@@ -42,23 +42,7 @@ terraform plan -out=tfplan
 # Apply the saved plan
 terraform apply tfplan
 
-# Export Terraform outputs to GitHub Actions outputs
-echo "Exporting Terraform outputs..."
-output_json=$(terraform output -json)
-
 if [ "$displayOutput" = "true" ]; then
+    output_json=$(terraform output -json)
     echo "Terraform outputs: $output_json"
-fi
-
-# Check if we're running in GitHub Actions
-if [ -z "$GITHUB_OUTPUT" ]; then
-    echo "Warning: GITHUB_OUTPUT environment variable not set. Outputs will not be exported to GitHub Actions."
-    exit 0
-fi
-
-if [[ "$output_json" != "{}" && -n "$output_json" ]]; then
-    echo "$output_json" | jq -r 'to_entries[] | "\(.key)=\(.value.value)"' >> "$GITHUB_OUTPUT"
-    echo "Successfully exported $(echo "$output_json" | jq 'keys | length') outputs to GitHub Actions."
-else
-    echo "No Terraform outputs found."
 fi
